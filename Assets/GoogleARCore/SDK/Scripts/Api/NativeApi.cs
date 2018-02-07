@@ -24,6 +24,7 @@ namespace GoogleARCoreInternal
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
+    using AOT;
     using GoogleARCore;
     using UnityEngine;
 
@@ -35,7 +36,13 @@ namespace GoogleARCoreInternal
 
         private IntPtr m_SessionHandle = IntPtr.Zero;
 
-        private EarlyUpdateCallback m_OnEarlyUpdate;
+        private static EarlyUpdateCallback s_OnEarlyUpdate;
+
+        [MonoPInvokeCallback(typeof(EarlyUpdateCallback))]
+        private static void OnEarlyUpdate(IntPtr frameHandle, int textureId)
+        {
+            s_OnEarlyUpdate(frameHandle, textureId);
+        }
 
         private NativeApi()
         {
@@ -127,8 +134,8 @@ namespace GoogleARCoreInternal
         
         public bool Resume(EarlyUpdateCallback onEarlyUpdate)
         {
-            m_OnEarlyUpdate = onEarlyUpdate;
-            return ExternApi.ArCoreUnity_resumeSession(m_OnEarlyUpdate);
+            s_OnEarlyUpdate = onEarlyUpdate;
+            return ExternApi.ArCoreUnity_resumeSession(OnEarlyUpdate);
         }
 
         /// <summary>
